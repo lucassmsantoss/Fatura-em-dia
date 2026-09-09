@@ -109,8 +109,7 @@ Este projeto foi desenvolvido com apoio de agente de IA, seguindo Spec-Driven De
 
 ## Equipe
 
-- [Nome completo 1] — matrícula [XXXXX]
-- [Nome completo 2] — matrícula [XXXXX]
+- Lucas Medeiros
 
 ## Licença
 
