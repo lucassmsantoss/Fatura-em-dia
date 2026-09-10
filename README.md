@@ -65,13 +65,11 @@ Um diagrama de arquitetura (C4/Mermaid) será adicionado em `docs/arquitetura.md
 
 ## Stack tecnológica
 
-> Em definição durante a implementação — este README será atualizado conforme as escolhas forem confirmadas e justificadas na apresentação.
-
-- **Backend**: a definir (candidato: FastAPI + Python)
-- **Frontend**: a definir (candidato: React ou HTML/JS)
-- **Banco de dados**: SQLite
-- **Testes**: pytest (backend)
-- **Ferramentas de IA / harness**: Claude Code, com processo de Spec-Driven Development documentado em `docs/`
+- **Backend**: Python 3.11+, FastAPI, SQLAlchemy 2.0, autenticação JWT (python-jose) e hash de senha com bcrypt (passlib).
+- **Frontend**: HTML/CSS/JavaScript puro (SPA sem build step), consumindo a API via `fetch()`.
+- **Banco de dados**: SQLite.
+- **Testes**: pytest — o módulo de domínio (`app/domain/fatura.py`, com as regras de ciclo de fatura, rateio, parcelamento e auto-categorização) tem cobertura unitária completa, escrita antes da implementação (TDD).
+- **Ferramentas de IA / harness**: Claude Code, com processo de Spec-Driven Development documentado em `docs/`.
 
 ## Estrutura do repositório
 
@@ -86,13 +84,56 @@ Um diagrama de arquitetura (C4/Mermaid) será adicionado em `docs/arquitetura.md
 │   ├── plano_inicial.md              # Planejamento e cronograma do projeto
 │   └── adr/
 │       └── 0001-arquitetura-rest-api.md
-├── backend/     # (a ser criado)
-└── frontend/    # (a ser criado)
+├── backend/
+│   ├── app/
+│   │   ├── main.py           # ponto de entrada da API (FastAPI)
+│   │   ├── database.py       # engine/sessão SQLAlchemy (SQLite)
+│   │   ├── models.py         # tabelas: Usuario, Pessoa, Cartao, Categoria, Regra, Lancamento, Pagamento, Receita
+│   │   ├── schemas.py        # contratos de entrada/saída da API (Pydantic)
+│   │   ├── auth.py           # hash de senha e JWT
+│   │   ├── domain/
+│   │   │   └── fatura.py     # regras de negócio puras (ciclo de fatura, rateio, parcelamento, regras)
+│   │   └── routers/
+│   │       ├── auth.py       # RF01 — cadastro/login
+│   │       ├── config.py     # RF02–RF05, RF07 — onboarding, pessoas, cartões, categorias, regras
+│   │       ├── lancamentos.py# RF06, RF07 — lançar despesa, sugestão por regra
+│   │       └── painel.py     # RF08–RF10 — painel, previsão, extrato, pagamentos, receita
+│   ├── tests/
+│   │   └── test_fatura_domain.py  # cobertura unitária do módulo de domínio (TDD)
+│   ├── requirements.txt
+│   └── pytest.ini
+└── frontend/
+    ├── index.html
+    ├── css/estilo.css
+    └── js/
+        ├── api.js   # cliente HTTP da API (fetch + JWT em localStorage)
+        └── app.js   # SPA: login/registro, onboarding, lançar, painel, extrato, ajustes
 ```
 
 ## Como rodar o projeto
 
-> Instruções serão adicionadas assim que o backend e o frontend forem implementados.
+### Backend
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+A API sobe em `http://localhost:8000` — documentação interativa (Swagger) em `http://localhost:8000/docs`, gerada automaticamente pelo FastAPI a partir dos contratos definidos em `app/schemas.py`.
+
+### Frontend
+
+Com o backend rodando em `http://localhost:8000`, basta abrir `frontend/index.html` diretamente no navegador (ou servir a pasta com qualquer servidor estático, ex. `python -m http.server` dentro de `frontend/`). Não há build step — é HTML/CSS/JS puro.
+
+### Rodando os testes
+
+```bash
+cd backend
+pytest -v
+```
 
 ## Processo de desenvolvimento (SDD + IA)
 
@@ -105,12 +146,16 @@ Este projeto foi desenvolvido com apoio de agente de IA, seguindo Spec-Driven De
 
 ## Testes
 
-> Estratégia de testes automatizados (cobrindo cálculo de fatura, rateio, parcelamento e previsão) será detalhada conforme o backend for implementado.
+O módulo de domínio (`backend/app/domain/fatura.py`) concentra toda a lógica de negócio pura — ciclo de fechamento de fatura, soma de meses, rateio entre pessoas, geração de parcelas e motor de regras de auto-categorização — e tem cobertura unitária completa em `backend/tests/test_fatura_domain.py` (20 testes, incluindo casos de borda como valor com arredondamento, número de parcelas inválido e descrição vazia). Os testes foram escritos antes da implementação (TDD): primeiro a suíte falhando, depois o código até todos passarem.
+
+```bash
+cd backend && pytest -v
+```
 
 ## Equipe
 
-- [Nome completo 1] — matrícula [XXXXX]
-- [Nome completo 2] — matrícula [XXXXX]
+- Lucas Medeiros dos Santos — matrícula 20261009725
+- Maria Jamilli Lemos de Macedo — matrícula 20261006115
 
 ## Licença
 
