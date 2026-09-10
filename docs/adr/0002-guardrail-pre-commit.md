@@ -19,12 +19,15 @@ O hook verifica se o commit contém arquivos dentro de `backend/`; se sim, roda 
 - **TDD Guard / Superpowers**: ferramentas mais completas, mas exigiriam configuração adicional fora do escopo de tempo do projeto.
 - **Regra de permissão do Claude Code** (bloquear edição direta de código sem teste correspondente): mais difícil de demonstrar de forma objetiva na apresentação do que um bloqueio de commit, que é trivial de reproduzir ao vivo.
 
-## Evidência de funcionamento (a ser capturada durante o desenvolvimento)
-Procedimento para gerar a evidência exigida pelo edital:
-1. Quebrar propositalmente um teste em `backend/tests/test_fatura_domain.py` (ex.: alterar um `assert` para um valor errado).
-2. Tentar commitar uma mudança em `backend/`.
-3. Capturar print/log mostrando o Git recusando o commit com a mensagem "❌ Commit BLOQUEADO".
-4. Desfazer a quebra proposital, confirmar que o commit passa a ser aceito.
+## Evidência de funcionamento
+
+Procedimento seguido para gerar a evidência exigida pelo edital:
+1. Quebrar propositalmente um teste em `backend/tests/test_fatura_domain.py` (alterado o `assert` de `test_soma_dentro_do_mesmo_ano` para um valor errado).
+2. Tentar commitar essa mudança em `backend/`.
+3. Capturar o print mostrando o Git recusando o commit com a mensagem "❌ Commit BLOQUEADO" — ver [`docs/evidencias/guardrail-bloqueio-commit.png`](../evidencias/guardrail-bloqueio-commit.png).
+4. Desfazer a quebra proposital (`git checkout HEAD -- backend/tests/test_fatura_domain.py`) e confirmar que a árvore de trabalho voltou limpa (`git status`).
+
+![Guardrail bloqueando commit com teste falhando](../evidencias/guardrail-bloqueio-commit.png)
 
 Esse print entra na apresentação (seção "Harness e controle de agentes") como evidência de bloqueio real.
 
