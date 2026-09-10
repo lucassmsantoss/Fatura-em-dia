@@ -12,6 +12,7 @@ Projeto final da disciplina **Desenvolvimento de Software com IA** — Programa 
 
 - [Sobre o projeto](#sobre-o-projeto)
 - [Funcionalidades](#funcionalidades)
+- [Estado atual](#estado-atual)
 - [Arquitetura](#arquitetura)
 - [Stack tecnológica](#stack-tecnológica)
 - [Estrutura do repositório](#estrutura-do-repositório)
@@ -31,21 +32,45 @@ O projeto nasceu de um protótipo pessoal ("Caderneta") criado por um dos integr
 
 ## Funcionalidades
 
-Lista completa com critérios de aceite em [`docs/requisitos-funcionais.md`](docs/requisitos-funcionais.md). Resumo:
+Os onze requisitos funcionais estão **especificados** com critérios de aceite verificáveis em
+[`openspec/specs/`](openspec/) — 9 capacidades, 29 requisitos e 69 cenários Given/When/Then,
+todos aprovados em `openspec validate --all --strict`. A rastreabilidade RF → capacidade está em
+[`docs/requisitos-funcionais.md`](docs/requisitos-funcionais.md).
 
-| # | Funcionalidade |
+A **implementação** está em andamento e é construída contra esse contrato, na ordem do plano de
+tarefas em [`openspec/changes/conformidade-rf/tasks.md`](openspec/changes/conformidade-rf/tasks.md).
+O código presente em `backend/` e `frontend/` é protótipo provisório, escrito antes das
+especificações existirem — ver a nota em [Estado atual](#estado-atual).
+
+| # | Funcionalidade | Capacidade especificada |
+|---|---|---|
+| RF01 | Cadastro e login de usuário | `autenticacao` |
+| RF02 | Onboarding de configuração inicial (nome, receita, pessoas, cartões, categorias) | `configuracao-inicial` |
+| RF03 | CRUD de pessoas para rateio de despesas | `cadastros-de-apoio` |
+| RF04 | CRUD de cartões/formas de pagamento (com dia de fechamento e deslocamento de fatura) | `cadastros-de-apoio` |
+| RF05 | CRUD de categorias de despesa | `cadastros-de-apoio` |
+| RF06 | Lançamento de despesa (à vista ou parcelada, dividida entre pessoas) | `lancamento-de-despesas` |
+| RF07 | Auto-categorização por regra de palavra-chave na descrição | `auto-categorizacao` |
+| RF08 | Painel mensal (dashboard) com totais, receita, sobra/falta e gastos por categoria/cartão | `painel-mensal` |
+| RF09 | Previsão de meses futuros calculada dinamicamente a partir de parcelas e contas fixas já lançadas | `previsao-financeira` |
+| RF10 | Extrato e cobrança por pessoa (saldo devedor, registro de pagamento) | `cobranca-entre-pessoas` |
+| RF11 (bônus) | Exportação/importação de lançamentos via CSV | `importacao-exportacao-csv` |
+
+## Estado atual
+
+Este projeto segue Spec-Driven Development, então a especificação precede o código — e o estado
+do repositório reflete essa ordem:
+
+| Camada | Estado |
 |---|---|
-| RF01 | Cadastro e login de usuário |
-| RF02 | Onboarding de configuração inicial (nome, receita, pessoas, cartões, categorias) |
-| RF03 | CRUD de pessoas para rateio de despesas |
-| RF04 | CRUD de cartões/formas de pagamento (com dia de fechamento e deslocamento de fatura) |
-| RF05 | CRUD de categorias de despesa |
-| RF06 | Lançamento de despesa (à vista ou parcelada, dividida entre pessoas) |
-| RF07 | Auto-categorização por regra de palavra-chave na descrição |
-| RF08 | Painel mensal (dashboard) com totais, receita, sobra/falta e gastos por categoria/cartão |
-| RF09 | Previsão de meses futuros calculada dinamicamente a partir de parcelas e contas fixas já lançadas |
-| RF10 | Extrato e cobrança por pessoa (saldo devedor, registro de pagamento) |
-| RF11 (bônus) | Exportação/importação de lançamentos via CSV |
+| Especificação (`openspec/specs/`) | **fechada** — 11 RFs, 29 requisitos, 69 cenários, validados |
+| Decisões de arquitetura (`docs/adr/`) | **fechadas** — 3 ADRs + diagramas C4 |
+| Harness e guardrail | **ativos** — hook de pre-commit + evidência de bloqueio e de observabilidade |
+| Implementação (`backend/`, `frontend/`) | **em andamento** — protótipo provisório sendo reconstruído contra o contrato |
+
+O protótipo em `backend/` e `frontend/` é anterior às especificações e **não é referência de
+comportamento**: ele serve como estudo de viabilidade e fonte de peças reaproveitáveis. O que
+vale como contrato é `openspec/specs/`.
 
 ## Arquitetura
 
@@ -54,7 +79,7 @@ O sistema é dividido em duas camadas com um contrato de API REST explícito ent
 - **Backend**: expõe uma API REST (autenticação, CRUDs de configuração, lançamentos, cálculo de painel/previsão) e persiste os dados em um banco relacional.
 - **Frontend**: aplicação web (SPA) que consome a API via HTTP/JSON.
 
-Um diagrama de arquitetura (C4/Mermaid) será adicionado em `docs/arquitetura.md` conforme o desenvolvimento avança.
+Os diagramas de contexto e de contêineres (C4 em Mermaid) estão em [`docs/arquitetura.md`](docs/arquitetura.md).
 
 ```
 ┌─────────────┐        HTTP/JSON        ┌──────────────┐        ┌────────────┐
@@ -68,7 +93,7 @@ Um diagrama de arquitetura (C4/Mermaid) será adicionado em `docs/arquitetura.md
 - **Backend**: Python 3.11+, FastAPI, SQLAlchemy 2.0, autenticação JWT (python-jose) e hash de senha com bcrypt (passlib).
 - **Frontend**: HTML/CSS/JavaScript puro (SPA sem build step), consumindo a API via `fetch()`.
 - **Banco de dados**: SQLite.
-- **Testes**: pytest — o módulo de domínio (`app/domain/fatura.py`, com as regras de ciclo de fatura, rateio, parcelamento e auto-categorização) tem cobertura unitária completa, escrita antes da implementação (TDD).
+- **Testes**: pytest — 20 testes unitários cobrindo o módulo de domínio do protótipo (`app/domain/fatura.py`: ciclo de fatura, rateio, parcelamento e auto-categorização), escritos antes dele (TDD). A suíte de API, derivada dos cenários do contrato, ainda não existe — ver [Testes](#testes).
 - **Ferramentas de IA / harness**: Claude Code, com processo de Spec-Driven Development documentado em `docs/`.
 
 ## Estrutura do repositório
@@ -77,14 +102,40 @@ Um diagrama de arquitetura (C4/Mermaid) será adicionado em `docs/arquitetura.md
 .
 ├── README.md
 ├── .gitignore
+├── openspec/                         # FONTE DA VERDADE das especificações
+│   ├── config.yaml
+│   ├── specs/                        # contrato acordado, uma pasta por capacidade
+│   │   ├── autenticacao/             # RF01
+│   │   ├── configuracao-inicial/     # RF02
+│   │   ├── cadastros-de-apoio/       # RF03, RF04, RF05
+│   │   ├── lancamento-de-despesas/   # RF06
+│   │   ├── auto-categorizacao/       # RF07
+│   │   ├── painel-mensal/            # RF08
+│   │   ├── previsao-financeira/      # RF09
+│   │   ├── cobranca-entre-pessoas/   # RF10
+│   │   └── importacao-exportacao-csv/# RF11
+│   └── changes/                      # mudanças propostas antes de virar código
+│       ├── conformidade-rf/          # proposal.md, design.md, specs/ (deltas), tasks.md
+│       └── archive/                  # changes já promovidos aos specs
+├── githooks/
+│   └── pre-commit                    # GUARDRAIL: bloqueia commit com teste falhando (ADR 0002)
+├── .claude/                          # integração com o agente, gerada pelo openspec init
+│   ├── skills/openspec-*/            # skills de propose, apply, archive, sync, update
+│   └── commands/opsx/                # comandos correspondentes
 ├── docs/
-│   ├── especificacao-inicial.md      # Spec inicial (prompt, requisitos, critérios de aceite, plano de tarefas)
-│   ├── requisitos-funcionais.md      # Requisitos funcionais detalhados (RF01–RF11)
+│   ├── especificacao-inicial.md      # Spec inicial (prompt/behavior, harness, nível de autonomia)
+│   ├── requisitos-funcionais.md      # Requisitos do 1º ciclo + rastreabilidade RF → capacidade
 │   ├── mapeamento_funcionalidades.md # Mapeamento do protótipo original vs. o que foi generalizado
 │   ├── plano_inicial.md              # Planejamento e cronograma do projeto
-│   └── adr/
-│       └── 0001-arquitetura-rest-api.md
-├── backend/
+│   ├── arquitetura.md                # Diagramas C4 (contexto e contêineres) em Mermaid
+│   ├── adr/
+│   │   ├── 0001-arquitetura-rest-api.md
+│   │   ├── 0002-guardrail-pre-commit.md
+│   │   └── 0003-adocao-do-openspec.md
+│   └── evidencias/
+│       ├── guardrail-bloqueio-commit.png  # bloqueio real do guardrail
+│       └── sessao-agente-specs.md         # transcript sanitizado da sessão do agente
+├── backend/                          # protótipo provisório — ver Estado atual
 │   ├── app/
 │   │   ├── main.py           # ponto de entrada da API (FastAPI)
 │   │   ├── database.py       # engine/sessão SQLAlchemy (SQLite)
@@ -102,7 +153,7 @@ Um diagrama de arquitetura (C4/Mermaid) será adicionado em `docs/arquitetura.md
 │   │   └── test_fatura_domain.py  # cobertura unitária do módulo de domínio (TDD)
 │   ├── requirements.txt
 │   └── pytest.ini
-└── frontend/
+└── frontend/                         # protótipo provisório — ver Estado atual
     ├── index.html
     ├── css/estilo.css
     └── js/
@@ -140,13 +191,26 @@ pytest -v
 Este projeto foi desenvolvido com apoio de agente de IA, seguindo Spec-Driven Development (SDD):
 
 1. **Especificação** — prompt inicial, requisitos e critérios de aceite (Given/When/Then, incluindo casos de borda) em [`docs/especificacao-inicial.md`](docs/especificacao-inicial.md) e [`docs/requisitos-funcionais.md`](docs/requisitos-funcionais.md).
-2. **Harness e guardrails** — nível de autonomia do agente, mecanismo de guardrail configurado e evidência de funcionamento serão documentados aqui conforme aplicados durante a implementação.
-3. **Observabilidade** — histórico de sessões do agente e revisão de diffs antes de cada commit.
+2. **Harness e guardrails** — nível de autonomia adotado (e por que ele fez sentido aqui), guardrail de `pre-commit` e evidência de bloqueio real em [`docs/especificacao-inicial.md`](docs/especificacao-inicial.md#harness-e-controle-de-agente-de-ia) e [`docs/adr/0002-guardrail-pre-commit.md`](docs/adr/0002-guardrail-pre-commit.md).
+3. **Observabilidade** — log da sessão do agente transcrito e sanitizado em [`docs/evidencias/sessao-agente-specs.md`](docs/evidencias/sessao-agente-specs.md), incluindo a revisão de diff que precedeu o commit.
 4. **Decisões de arquitetura** — registradas como ADRs em [`docs/adr/`](docs/adr/).
 
 ## Testes
 
-O módulo de domínio (`backend/app/domain/fatura.py`) concentra toda a lógica de negócio pura — ciclo de fechamento de fatura, soma de meses, rateio entre pessoas, geração de parcelas e motor de regras de auto-categorização — e tem cobertura unitária completa em `backend/tests/test_fatura_domain.py` (20 testes, incluindo casos de borda como valor com arredondamento, número de parcelas inválido e descrição vazia). Os testes foram escritos antes da implementação (TDD): primeiro a suíte falhando, depois o código até todos passarem.
+**O que já existe.** O módulo de domínio do protótipo (`backend/app/domain/fatura.py`) concentra
+a lógica de negócio pura — ciclo de fechamento de fatura, soma de meses, rateio entre pessoas,
+geração de parcelas e motor de regras de auto-categorização — e tem **20 testes unitários** em
+`backend/tests/test_fatura_domain.py`, incluindo casos de borda como valor com arredondamento,
+número de parcelas inválido e descrição vazia. Esses testes cobrem integralmente as funções
+daquele módulo e foram escritos antes dele (TDD): primeiro a suíte falhando, depois o código até
+todos passarem.
+
+**O que ainda não existe.** Cobertura do sistema. Não há suíte de testes de API, e portanto os
+cenários do contrato que envolvem HTTP, persistência e isolamento entre contas ainda não têm
+teste correspondente. Fechar isso é o bloco 1 do plano de tarefas, e a regra adotada é um teste
+por cenário de `openspec/specs/`, escrito **antes** da implementação da capacidade.
+
+Ou seja: cobertura unitária completa **do módulo de domínio do protótipo**, não do sistema.
 
 ```bash
 cd backend && pytest -v

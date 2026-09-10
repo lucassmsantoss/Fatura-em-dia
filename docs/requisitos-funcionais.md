@@ -6,7 +6,7 @@
 > `git log --reverse`.
 >
 > **A fonte da verdade das specs passou a ser [`openspec/`](../openspec/)** a partir do segundo
-> ciclo — ver [ADR 0003](adr/0003-adocao-do-openspec.md). Consulte lá o contrato vigente e os
+> ciclo — ver [ADR 0003](adr/0003-adocao-do-openspec.md). Consulte lá o contrato acordado e os
 > critérios de aceite completos; este arquivo não é mais atualizado.
 >
 > ### Rastreabilidade — requisito funcional para capacidade especificada
@@ -21,7 +21,7 @@
 > | RF08 | `painel-mensal` |
 > | RF09 | `previsao-financeira` |
 > | RF10 | `cobranca-entre-pessoas` |
-> | RF11 | `importacao-exportacao-csv` (proposta em `openspec/changes/conformidade-rf/`) |
+> | RF11 | `importacao-exportacao-csv` |
 
 
 Base: protótipo "Caderneta" (ver `docs/mapeamento_funcionalidades.md` no projeto/histórico de planejamento), generalizado para múltiplos usuários independentes (cada um com sua própria conta e configuração — sem contas compartilhadas entre usuários).
