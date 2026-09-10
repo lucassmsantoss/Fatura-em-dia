@@ -1,0 +1,43 @@
+#!/bin/sh
+# Guardrail do projeto "Fatura em Dia": bloqueia o commit se algum teste do
+# backend estiver falhando. Só roda quando o commit toca arquivos em backend/,
+# para não travar commits que mexem só no frontend.
+#
+# Ativado via: git config core.hooksPath githooks   (ver docs/adr/0002-guardrail-pre-commit.md)
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT" || exit 1
+
+ARQUIVOS_BACKEND=$(git diff --cached --name-only | grep '^backend/')
+
+if [ -z "$ARQUIVOS_BACKEND" ]; then
+  # Nenhum arquivo do backend neste commit — nada a validar.
+  exit 0
+fi
+
+echo "Guardrail: commit toca arquivos do backend — rodando a suíte de testes antes de permitir o commit..."
+
+cd "$REPO_ROOT/backend" || exit 1
+
+if [ -x ".venv/Scripts/python.exe" ]; then
+  PYTHON=".venv/Scripts/python.exe"
+elif [ -x ".venv/bin/python" ]; then
+  PYTHON=".venv/bin/python"
+elif command -v python >/dev/null 2>&1; then
+  PYTHON="python"
+else
+  PYTHON="python3"
+fi
+
+"$PYTHON" -m pytest -q
+RESULTADO=$?
+
+if [ $RESULTADO -ne 0 ]; then
+  echo ""
+  echo "❌ Commit BLOQUEADO: existem testes falhando no backend (backend/tests/)."
+  echo "   Corrija os testes antes de commitar, ou rode 'pytest -v' em backend/ para ver o detalhe."
+  exit 1
+fi
+
+echo "✅ Testes do backend passaram — commit liberado."
+exit 0
