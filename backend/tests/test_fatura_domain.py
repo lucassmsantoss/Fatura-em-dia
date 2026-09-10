@@ -14,6 +14,8 @@ from app.domain.fatura import (
     gerar_parcelas,
     aplicar_regra,
     normalizar,
+    substituir_nome,
+    classificar_tipo,
 )
 
 
@@ -121,3 +123,55 @@ class TestAplicarRegra:
 class TestNormalizar:
     def test_remove_acentos_e_baixa_caixa(self):
         assert normalizar("Alimentação") == "alimentacao"
+
+
+class TestSubstituirNome:
+    def test_troca_o_nome_preservando_a_ordem(self):
+        assert substituir_nome(["Ana", "Bruna", "Caio"], "Bruna", "Bruna Silva") == [
+            "Ana",
+            "Bruna Silva",
+            "Caio",
+        ]
+
+    def test_lista_sem_o_nome_fica_intacta(self):
+        assert substituir_nome(["Ana", "Caio"], "Bruna", "Bruna Silva") == ["Ana", "Caio"]
+
+    def test_caso_de_borda_lista_vazia(self):
+        assert substituir_nome([], "Bruna", "Bruna Silva") == []
+
+    def test_caso_de_borda_nome_novo_ja_presente_nao_duplica(self):
+        assert substituir_nome(["Ana", "Bruna"], "Bruna", "Ana") == ["Ana"]
+
+    def test_caso_de_borda_nome_igual_ao_antigo_e_no_op(self):
+        assert substituir_nome(["Ana", "Bruna"], "Bruna", "Bruna") == ["Ana", "Bruna"]
+
+
+class TestClassificarTipo:
+    """
+    A classificação do tipo de um lançamento é derivada de três entradas:
+    o mês de fatura da parcela, o mês corrente e a marcação de conta fixa.
+
+    O mês corrente é PARÂMETRO EXPLÍCITO, nunca lido de dentro da função —
+    é o que torna estes testes independentes da data em que rodam.
+    """
+
+    def test_parcela_em_mes_futuro_e_compromisso(self):
+        assert classificar_tipo("2026-10", "2026-09") == "c"
+
+    def test_parcela_no_mes_corrente_nao_e_compromisso(self):
+        assert classificar_tipo("2026-09", "2026-09") == "r"
+
+    def test_parcela_em_mes_passado_nao_e_compromisso(self):
+        assert classificar_tipo("2026-08", "2026-09") == "r"
+
+    def test_conta_fixa_prevalece_sobre_a_classificacao_por_data(self):
+        """A marcação explícita da pessoa vence a inferência por calendário."""
+        assert classificar_tipo("2026-12", "2026-09", conta_fixa=True) == "e"
+
+    def test_conta_fixa_no_mes_corrente_tambem_e_estimativa(self):
+        assert classificar_tipo("2026-09", "2026-09", conta_fixa=True) == "e"
+
+    def test_caso_de_borda_virada_de_ano_e_comparada_corretamente(self):
+        """Dezembro de um ano é anterior a janeiro do seguinte, apesar de 12 > 01."""
+        assert classificar_tipo("2027-01", "2026-12") == "c"
+        assert classificar_tipo("2026-12", "2027-01") == "r"

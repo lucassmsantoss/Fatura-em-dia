@@ -103,10 +103,6 @@ class LancamentoCriar(BaseModel):
     salvar_regra: bool = False
 
 
-class LancamentoAtualizarTipo(BaseModel):
-    tipo: str = Field(pattern="^[rce]$")
-
-
 class LancamentoAtualizarDono(BaseModel):
     pessoas: list[str]
 
@@ -125,6 +121,16 @@ class LancamentoSaida(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class LinhaRejeitada(BaseModel):
+    linha: int
+    motivo: str
+
+
+class ImportacaoResultado(BaseModel):
+    importados: int
+    rejeitados: list[LinhaRejeitada] = []
 
 
 class SugestaoRegra(BaseModel):

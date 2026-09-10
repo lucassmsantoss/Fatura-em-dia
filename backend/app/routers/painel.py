@@ -140,6 +140,42 @@ def listar_pagamentos(pessoa: str | None = None, usuario: Usuario = Depends(usua
     return query.order_by(Pagamento.data.desc()).all()
 
 
+@router.get("/receitas", response_model=list[ReceitaSaida])
+def listar_receitas(usuario: Usuario = Depends(usuario_atual), db: Session = Depends(get_db)):
+    """
+    RF08 — Lista todas as receitas já registradas na conta, ordenadas por mês.
+
+    Complementa a consulta por mês: aquela preenche um campo, esta responde
+    "em quais meses eu já registrei receita?" — que é como se percebe um mês
+    esquecido, cuja falta o painel só mostra como sobra negativa sem causa
+    aparente.
+    """
+    return (
+        db.query(Receita)
+        .filter(Receita.usuario_id == usuario.id)
+        .order_by(Receita.mes)
+        .all()
+    )
+
+
+@router.get("/receitas/{mes}", response_model=ReceitaSaida)
+def consultar_receita(mes: str, usuario: Usuario = Depends(usuario_atual), db: Session = Depends(get_db)):
+    """
+    RF08 — Consulta a receita de um mês.
+
+    Mês sem receita registrada devolve zero, não 404: a ausência é o estado
+    normal de qualquer mês ainda não configurado, não uma condição de erro.
+    Devolver zero deixa a interface abrir o campo em branco; devolver 404
+    obrigaria a tratar como erro o caso mais comum.
+    """
+    receita = db.query(Receita).filter(
+        Receita.usuario_id == usuario.id, Receita.mes == mes
+    ).first()
+    if not receita:
+        return ReceitaSaida(mes=mes, renda_principal=0.0, renda_extra=0.0)
+    return receita
+
+
 @router.put("/receitas", response_model=ReceitaSaida)
 def definir_receita(dados: ReceitaEntrada, usuario: Usuario = Depends(usuario_atual), db: Session = Depends(get_db)):
     """Define (ou atualiza) a receita de um mês específico."""

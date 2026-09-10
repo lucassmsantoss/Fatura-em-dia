@@ -1,13 +1,17 @@
 """RF06 (lançar despesa com parcelamento e rateio) + RF07 (auto-categorização)."""
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import date
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi.responses import PlainTextResponse
 from sqlalchemy.orm import Session
 
 from app.auth import usuario_atual
 from app.database import get_db
-from app.domain.fatura import aplicar_regra, fatura_de, gerar_parcelas
+from app.domain.csv_lancamentos import CabecalhoInvalido, interpretar, serializar
+from app.domain.fatura import aplicar_regra, classificar_tipo, fatura_de, gerar_parcelas
 from app.models import Cartao, Lancamento, Regra, Usuario
 from app.schemas import (
-    LancamentoAtualizarDono, LancamentoAtualizarTipo, LancamentoCriar,
+    ImportacaoResultado, LancamentoAtualizarDono, LancamentoCriar,
     LancamentoSaida, SugestaoRegra,
 )
 
@@ -36,6 +40,59 @@ def sugerir_por_descricao(descricao: str, usuario: Usuario = Depends(usuario_atu
     )
 
 
+@router.get("/exportar", response_class=PlainTextResponse)
+def exportar_csv(usuario: Usuario = Depends(usuario_atual), db: Session = Depends(get_db)):
+    """
+    RF11 — Exporta todos os lançamentos da conta em CSV.
+
+    A rota só busca os lançamentos e entrega ao domínio: o formato é
+    responsabilidade de `app/domain/csv_lancamentos.py`.
+    """
+    lancamentos = (
+        db.query(Lancamento)
+        .filter(Lancamento.usuario_id == usuario.id)
+        .order_by(Lancamento.id)
+        .all()
+    )
+    texto = serializar([{
+        "data": l.data, "mes": l.mes, "descricao": l.descricao,
+        "categoria": l.categoria, "cartao": l.cartao, "parcela": l.parcela,
+        "valor": l.valor, "pessoas": l.pessoas, "tipo": l.tipo,
+    } for l in lancamentos])
+    return PlainTextResponse(
+        content=texto,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="lancamentos.csv"'},
+    )
+
+
+@router.post("/importar", response_model=ImportacaoResultado)
+async def importar_csv(
+    arquivo: UploadFile = File(...),
+    usuario: Usuario = Depends(usuario_atual),
+    db: Session = Depends(get_db),
+):
+    """
+    RF11 — Importa lançamentos de um CSV no formato da exportação.
+
+    Importação parcial: uma linha inválida não aborta o arquivo, e a resposta
+    relata quantas entraram e quais foram recusadas com o motivo. Já um
+    cabeçalho não reconhecido recusa o arquivo inteiro — sem ele não há
+    interpretação confiável de nenhuma linha.
+    """
+    conteudo = (await arquivo.read()).decode("utf-8-sig")
+    try:
+        aceitos, rejeitados = interpretar(conteudo)
+    except CabecalhoInvalido as erro:
+        raise HTTPException(status_code=400, detail=str(erro))
+
+    for dados in aceitos:
+        db.add(Lancamento(usuario_id=usuario.id, **dados))
+    db.commit()
+
+    return ImportacaoResultado(importados=len(aceitos), rejeitados=rejeitados)
+
+
 @router.post("", response_model=list[LancamentoSaida], status_code=201)
 def lancar_despesa(dados: LancamentoCriar, usuario: Usuario = Depends(usuario_atual), db: Session = Depends(get_db)):
     """
@@ -49,7 +106,11 @@ def lancar_despesa(dados: LancamentoCriar, usuario: Usuario = Depends(usuario_at
     mes_base = fatura_de(dados.data, {"fecha": cartao.fecha, "desloca": cartao.desloca})
     parcelas = gerar_parcelas(dados.valor, dados.parcelas, mes_base)
 
-    tipo_padrao = "e" if dados.estimativa else "r"
+    # O tipo é DERIVADO, não escolhido: depende do mês de fatura de cada parcela,
+    # do mês corrente e da marcação de conta fixa. Por isso é calculado por
+    # parcela — numa compra parcelada, a primeira pode já ter acontecido enquanto
+    # as seguintes ainda são compromisso.
+    mes_corrente = date.today().strftime("%Y-%m")
     criados = []
     for p in parcelas:
         lanc = Lancamento(
@@ -62,7 +123,7 @@ def lancar_despesa(dados: LancamentoCriar, usuario: Usuario = Depends(usuario_at
             parcela=p["parcela"],
             valor=p["valor"],
             pessoas=dados.pessoas,
-            tipo=tipo_padrao,
+            tipo=classificar_tipo(p["mes"], mes_corrente, conta_fixa=dados.estimativa),
         )
         db.add(lanc)
         criados.append(lanc)
@@ -85,18 +146,6 @@ def listar_lancamentos(mes: str | None = None, usuario: Usuario = Depends(usuari
     if mes:
         query = query.filter(Lancamento.mes == mes)
     return query.order_by(Lancamento.id.desc()).all()
-
-
-@router.patch("/{lancamento_id}/tipo", response_model=LancamentoSaida)
-def atualizar_tipo(lancamento_id: int, dados: LancamentoAtualizarTipo, usuario: Usuario = Depends(usuario_atual), db: Session = Depends(get_db)):
-    """Alterna entre aconteceu / compromisso / estimativa."""
-    lanc = db.query(Lancamento).filter(Lancamento.id == lancamento_id, Lancamento.usuario_id == usuario.id).first()
-    if not lanc:
-        raise HTTPException(status_code=404, detail="Lançamento não encontrado.")
-    lanc.tipo = dados.tipo
-    db.commit()
-    db.refresh(lanc)
-    return lanc
 
 
 @router.patch("/{lancamento_id}/dono", response_model=LancamentoSaida)
