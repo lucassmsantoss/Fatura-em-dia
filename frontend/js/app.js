@@ -136,7 +136,7 @@ function renderRegistro() {
 const rascunhoOnboarding = {
   pessoas: [],
   cartoes: [{ nome: "Cartão principal", cor: "#0E6F63", fecha: 0, desloca: 0 }],
-  categorias: ["Mercado", "Alimentação", "Transporte", "Moradia", "Saúde", "Educação", "Compras", "Assinaturas", "Outros"],
+  categorias: [],
   renda_principal: 0,
 };
 
@@ -181,10 +181,11 @@ function renderOnboarding() {
 
     <div class="bloco">
       <h2>Categorias de despesa</h2>
+      <p class="mini" style="margin-top:-6px">Crie as categorias que fazem sentido para você — nada vem pronto.</p>
       <div class="chips" id="ob-categorias">
-        ${r.categorias.map((c, i) => `<span class="chip" aria-pressed="true">${esc(c)} <button data-rm-cat="${i}" style="border:0;background:none;cursor:pointer">×</button></span>`).join("")}
+        ${r.categorias.map((c, i) => `<span class="chip" aria-pressed="true">${esc(c)} <button data-rm-cat="${i}" style="border:0;background:none;cursor:pointer">×</button></span>`).join("") || "<span class='mini'>Nenhuma categoria ainda.</span>"}
       </div>
-      <div class="acoes" style="margin-top:10px"><input type="text" id="ob-nova-cat" placeholder="Nova categoria"><button class="btn small" id="ob-add-cat">Adicionar</button></div>
+      <div class="acoes" style="margin-top:10px"><input type="text" id="ob-nova-cat" placeholder="Ex.: Mercado"><button class="btn small" id="ob-add-cat">Adicionar</button></div>
     </div>
 
     ${estado.erro ? `<p class="erro">${esc(estado.erro)}</p>` : ""}
