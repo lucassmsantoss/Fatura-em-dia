@@ -59,7 +59,6 @@ const API = {
   sugestao(descricao) { return this.get("/lancamentos/sugestao?descricao=" + encodeURIComponent(descricao)); },
   lancar(dados) { return this.post("/lancamentos", dados); },
   lancamentos(mes) { return this.get("/lancamentos" + (mes ? `?mes=${mes}` : "")); },
-  atualizarTipo(id, tipo) { return this.patch(`/lancamentos/${id}/tipo`, { tipo }); },
   atualizarDono(id, pessoas) { return this.patch(`/lancamentos/${id}/dono`, { pessoas }); },
   removerLancamento(id) { return this.del(`/lancamentos/${id}`); },
 

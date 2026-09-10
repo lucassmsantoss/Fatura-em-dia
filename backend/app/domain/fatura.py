@@ -113,3 +113,50 @@ def aplicar_regra(descricao: str, regras: list[Regra]) -> Regra | None:
         if chave and chave in desc_normalizada:
             return regra
     return None
+
+
+def substituir_nome(nomes: list[str], antigo: str, novo: str) -> list[str]:
+    """
+    Troca `antigo` por `novo` em uma lista de nomes, preservando a ordem e sem
+    duplicar caso `novo` já esteja presente.
+
+    Usada na renomeação de pessoas, que precisa propagar para as listas de
+    participantes guardadas em lançamentos e regras.
+    """
+    if not nomes or antigo == novo:
+        return list(nomes or [])
+    resultado: list[str] = []
+    for nome in nomes:
+        substituido = novo if nome == antigo else nome
+        if substituido not in resultado:
+            resultado.append(substituido)
+    return resultado
+
+def classificar_tipo(mes_fatura: str, mes_corrente: str, conta_fixa: bool = False) -> str:
+    """
+    Deriva o tipo de um lançamento a partir do mês em que ele cai, do mês
+    corrente e da marcação de conta fixa recorrente.
+
+    Devolve um de três valores:
+      "e" — estimativa: conta fixa recorrente
+      "c" — compromisso: parcela já contratada que cai em mês ainda por vir
+      "r" — aconteceu: tudo o mais
+
+    Duas decisões deliberadas, ambas registradas no design do change
+    `conformidade-rf`:
+
+    1. `mes_corrente` é PARÂMETRO, nunca lido de dentro da função. Sem isso o
+       resultado dependeria do relógio e o teste ficaria frágil.
+    2. A marcação explícita de conta fixa PREVALECE sobre a inferência por
+       data. Uma conta fixa lançada para um mês futuro é estimativa, não
+       compromisso — quem sabe que aquilo é recorrente é a pessoa, não o
+       calendário.
+
+    A comparação de "AAAA-MM" como texto é correta: o formato é ordenável
+    lexicograficamente, inclusive na virada de ano.
+    """
+    if conta_fixa:
+        return "e"
+    if mes_fatura > mes_corrente:
+        return "c"
+    return "r"
