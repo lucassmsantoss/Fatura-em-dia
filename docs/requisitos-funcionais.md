@@ -1,5 +1,29 @@
 # Requisitos Funcionais — Fatura em Dia
 
+> **Registro do primeiro ciclo de especificação (08/09).** Este documento é preservado como
+> evidência datada de que os requisitos foram escritos antes do código — o commit que o
+> criou (`6253069`) precede em 23 horas o commit do backend (`5a95687`), verificável por
+> `git log --reverse`.
+>
+> **A fonte da verdade das specs passou a ser [`openspec/`](../openspec/)** a partir do segundo
+> ciclo — ver [ADR 0003](adr/0003-adocao-do-openspec.md). Consulte lá o contrato vigente e os
+> critérios de aceite completos; este arquivo não é mais atualizado.
+>
+> ### Rastreabilidade — requisito funcional para capacidade especificada
+>
+> | RF | Capacidade em `openspec/specs/` |
+> |---|---|
+> | RF01 | `autenticacao` |
+> | RF02 | `configuracao-inicial` |
+> | RF03, RF04, RF05 | `cadastros-de-apoio` |
+> | RF06 | `lancamento-de-despesas` |
+> | RF07 | `auto-categorizacao` |
+> | RF08 | `painel-mensal` |
+> | RF09 | `previsao-financeira` |
+> | RF10 | `cobranca-entre-pessoas` |
+> | RF11 | `importacao-exportacao-csv` (proposta em `openspec/changes/conformidade-rf/`) |
+
+
 Base: protótipo "Caderneta" (ver `docs/mapeamento_funcionalidades.md` no projeto/histórico de planejamento), generalizado para múltiplos usuários independentes (cada um com sua própria conta e configuração — sem contas compartilhadas entre usuários).
 
 ## Escopo confirmado
