@@ -1,18 +1,20 @@
 ## Context
 
-O sistema já está em pé: API REST em FastAPI, persistência em SQLite via SQLAlchemy, interface em JavaScript sem etapa de build, e um módulo de domínio puro (`app/domain/fatura.py`) isolado de framework e de banco, coberto por 20 testes unitários. A separação entre domínio puro e camada HTTP é a decisão da ADR 0001 e é o que torna a lógica financeira testável sem subir servidor — este change preserva essa separação.
+Existe no repositório um protótipo provisório — API em FastAPI, persistência em SQLite via SQLAlchemy, interface em JavaScript sem etapa de build e um módulo de domínio puro (`app/domain/fatura.py`) com testes unitários. Ele foi escrito **antes** das specs existirem e **não é entrega nem referência**: serve como estudo de viabilidade e como fonte de peças reaproveitáveis. O contrato a ser implementado é o de `openspec/specs/`, não o comportamento desse protótipo.
+
+O que se aproveita dele como decisão, e não como código, é a separação entre domínio puro e camada HTTP — decisão da ADR 0001, e o que torna a lógica financeira testável sem subir servidor. A implementação deve preservar essa separação.
 
 Restrições que moldam o desenho:
 
-- **Nenhuma alteração de esquema é necessária.** Todos os campos envolvidos já existem, incluindo o campo de tipo do lançamento, que hoje aceita três valores mas só recebe dois.
-- **Pessoas, categorias e formas de pagamento são referenciadas por nome nos lançamentos**, não por chave estrangeira. Foi uma decisão herdada do protótipo, registrada em `models.py`, e não vai ser revertida sob o prazo deste change. Ela é a razão de a renomeação exigir propagação explícita.
+- **O modelo de dados do protótipo atende ao contrato.** Os campos exigidos pelas capacidades já estão previstos nele, incluindo o campo de tipo do lançamento com três valores (aconteceu, compromisso, estimativa). Reaproveitá-lo é escolha de economia, não obrigação.
+- **Pessoas, categorias e formas de pagamento são referenciadas por nome nos lançamentos**, não por chave estrangeira. É a modelagem do protótipo, e mantê-la é decisão consciente de prazo — não vai ser revertida agora. Ela é a razão de a renomeação exigir propagação explícita, e fica registrada como dívida conhecida nos Non-Goals.
 - **O gate de pre-commit (ADR 0002) roda a suíte do backend** em todo commit que toque `backend/`. Qualquer tarefa aqui só entra com a suíte verde.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Fechar a divergência entre os requisitos aceitos e o comportamento implementado, sem introduzir requisito novo além do RF11 já anunciado.
+- Fechar a divergência entre os requisitos aceitos e o contrato especificado, sem introduzir requisito novo além do RF11 já anunciado.
 - Manter a regra de negócio nova em funções puras no módulo de domínio, testáveis sem banco, seguindo o padrão já estabelecido.
 - Produzir, para cada critério de aceite desta proposta, um teste automatizado equivalente.
 
@@ -56,7 +58,7 @@ Uma linha inválida não aborta o arquivo: as demais entram e a resposta relata 
 | Risco | Mitigação |
 |---|---|
 | A propagação de nome altera muitos registros de uma vez e é a operação mais destrutiva deste change. | Executada em transação única, restrita à conta autenticada, e coberta por teste que verifica o extrato da pessoa antes e depois da renomeação. |
-| Reclassificar o tipo de lançamento muda o resultado do painel e da previsão para dados já gravados. | O teste de API é escrito antes da correção e registra o comportamento atual como falha conhecida, tornando a mudança visível em vez de silenciosa. |
+| A classificação por data é a regra mais fácil de implementar errado, porque só se manifesta em meses futuros. | O teste de API é escrito **antes** da implementação, a partir dos cenários do contrato, e falha enquanto a regra não existir — tornando a lacuna visível em vez de silenciosa. |
 | A comparação com o "mês corrente" torna o resultado dependente da data de execução, o que fragiliza o teste. | O mês corrente entra como parâmetro explícito da função pura, nunca lido de dentro dela — o teste passa a data que quiser. |
 | RF11 é o item de maior esforço e o menos crítico dos cinco. | Está deliberadamente por último no plano de tarefas e é o único item marcado como condicional ao tempo restante. |
 | A referência por nome continua sendo a fragilidade estrutural do modelo. | Fora de escopo aqui, mas registrada explicitamente como dívida conhecida em Non-Goals para não ser confundida com esquecimento. |

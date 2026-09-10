@@ -54,7 +54,7 @@ O sistema é dividido em duas camadas com um contrato de API REST explícito ent
 - **Backend**: expõe uma API REST (autenticação, CRUDs de configuração, lançamentos, cálculo de painel/previsão) e persiste os dados em um banco relacional.
 - **Frontend**: aplicação web (SPA) que consome a API via HTTP/JSON.
 
-Um diagrama de arquitetura (C4/Mermaid) será adicionado em `docs/arquitetura.md` conforme o desenvolvimento avança.
+Os diagramas de contexto e de contêineres (C4 em Mermaid) estão em [`docs/arquitetura.md`](docs/arquitetura.md).
 
 ```
 ┌─────────────┐        HTTP/JSON        ┌──────────────┐        ┌────────────┐
@@ -140,8 +140,8 @@ pytest -v
 Este projeto foi desenvolvido com apoio de agente de IA, seguindo Spec-Driven Development (SDD):
 
 1. **Especificação** — prompt inicial, requisitos e critérios de aceite (Given/When/Then, incluindo casos de borda) em [`docs/especificacao-inicial.md`](docs/especificacao-inicial.md) e [`docs/requisitos-funcionais.md`](docs/requisitos-funcionais.md).
-2. **Harness e guardrails** — nível de autonomia do agente, mecanismo de guardrail configurado e evidência de funcionamento serão documentados aqui conforme aplicados durante a implementação.
-3. **Observabilidade** — histórico de sessões do agente e revisão de diffs antes de cada commit.
+2. **Harness e guardrails** — nível de autonomia adotado (e por que ele fez sentido aqui), guardrail de `pre-commit` e evidência de bloqueio real em [`docs/especificacao-inicial.md`](docs/especificacao-inicial.md#harness-e-controle-de-agente-de-ia) e [`docs/adr/0002-guardrail-pre-commit.md`](docs/adr/0002-guardrail-pre-commit.md).
+3. **Observabilidade** — log da sessão do agente transcrito e sanitizado em [`docs/evidencias/sessao-agente-specs.md`](docs/evidencias/sessao-agente-specs.md), incluindo a revisão de diff que precedeu o commit.
 4. **Decisões de arquitetura** — registradas como ADRs em [`docs/adr/`](docs/adr/).
 
 ## Testes

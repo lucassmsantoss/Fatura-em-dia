@@ -23,7 +23,7 @@ openspec init --tools claude --language "pt-BR"
 
 A estrutura passa a ser:
 
-- `openspec/specs/<capacidade>/spec.md` — o **contrato vigente**: o que o sistema faz hoje, organizado por capacidade em vez de por número de requisito.
+- `openspec/specs/<capacidade>/spec.md` — o **contrato acordado**: o que o sistema deve fazer, organizado por capacidade em vez de por número de requisito. Na semântica do OpenSpec este diretório representa o estado corrente do sistema; neste projeto, em que a especificação precede a implementação, ele representa o alvo contra o qual o código é construído.
 - `openspec/changes/<nome>/` — cada **mudança proposta**, com `proposal.md` (o quê e por quê), `design.md` (como e por que assim), `specs/` (os deltas de requisito) e `tasks.md` (o plano de execução).
 - `.claude/skills/openspec-*` e `.claude/commands/opsx/*` — a integração com o agente de IA, gerada pela própria ferramenta.
 

@@ -1,21 +1,40 @@
 ## Why
 
-Uma revisão de conformidade comparou o comportamento implementado com os requisitos aceitos em `docs/requisitos-funcionais.md` (commit `6253069`, escrito antes do código) e encontrou cinco divergências. Nenhuma é ideia nova: são requisitos já acordados pela dupla e já anunciados no README que não estão fechados de ponta a ponta.
+O primeiro passe de especificação foi escrito lendo o protótipo que existia no repositório. O
+efeito disso só ficou visível depois: as capacidades em `openspec/specs/` descreviam o que
+aquele protótipo fazia, e não os requisitos que a dupla havia acordado em
+`docs/requisitos-funcionais.md` (commit `6253069`). O contrato nasceu mais estreito que os
+requisitos que ele deveria codificar — e, pior, mais estreito de um jeito silencioso: quem
+lesse só os specs concluiria que estava tudo conforme.
 
-Duas delas quebram a demonstração do sistema:
+Cinco pontos ficaram de fora:
 
-- **A previsão de meses futuros nunca soma parcelas.** O cálculo considera apenas lançamentos classificados como compromisso ou estimativa, mas nenhum ponto do sistema classifica um lançamento como compromisso. Parcelas futuras de uma compra parcelada ficam de fora, e o painel exibe previsão zerada mesmo com parcelamento ativo. O critério de aceite de RF09 já escrito em `docs/requisitos-funcionais.md` não é atendido.
-- **A receita existe apenas no mês da configuração inicial.** Não há como consultá-la nem alterá-la depois. A partir do mês seguinte o painel calcula sobra ou falta contra receita zero e sempre acusa falta.
+- `cadastros-de-apoio` dizia "criar e remover" pessoas e categorias. RF03 e RF05 dizem
+  "criar, **editar** e remover".
+- `previsao-financeira` não exigia que parcelas futuras entrassem na previsão, embora seja
+  exatamente o que RF09 descreve e o que dá sentido à funcionalidade.
+- `painel-mensal` só exigia *registrar* receita, não consultá-la nem alterá-la depois — o que
+  deixaria a receita presa ao mês da configuração inicial.
+- `auto-categorizacao` descrevia a criação de regra como efeito automático de todo lançamento.
+  RF07 diz que a pessoa **pode** criar a regra.
+- RF11 (exportar/importar CSV) estava anunciado no README sem capacidade correspondente.
 
-As outras três são lacunas de contrato: pessoas e categorias não podem ser editadas, embora RF03 e RF05 digam "criar, editar e remover"; a regra de auto-categorização é criada à revelia da pessoa em toda despesa, embora RF07 diga que ela *pode* criar a regra; e a exportação/importação em CSV (RF11) está anunciada no README sem nenhuma implementação.
+O código de backend e frontend presente no repositório é **protótipo provisório**, não entrega:
+ele foi escrito antes das specs existirem e não é a referência de nada. A correção aqui é de
+contrato, e acontece **antes** da implementação — que é a ordem que o SDD exige.
 
 ## What Changes
 
-- Parcelas cujo mês de fatura é posterior ao mês corrente passam a ser classificadas como compromisso, entrando na previsão. A marcação explícita de conta fixa recorrente continua prevalecendo sobre essa regra.
-- A receita de qualquer mês passa a poder ser consultada e alterada, e não apenas registrada uma vez na configuração inicial.
-- Pessoas e categorias passam a poder ser renomeadas, com propagação do novo nome para os lançamentos, regras e pagamentos que as referenciam.
-- A criação de regra de auto-categorização passa a depender de escolha explícita da pessoa a cada lançamento, em vez de acontecer sempre.
-- Passa a existir exportação e importação de lançamentos em CSV.
+- Pessoas e categorias passam a ser editáveis no contrato, com propagação do novo nome para os
+  lançamentos, regras e pagamentos que as referenciam.
+- A previsão passa a exigir que parcela cujo mês de fatura é posterior ao mês corrente seja
+  classificada como compromisso já contratado. A marcação explícita de conta fixa recorrente
+  prevalece sobre essa classificação por data.
+- A receita de qualquer mês passa a ser consultável e alterável; mês sem receita registrada
+  devolve zero, não erro.
+- A criação de regra de auto-categorização passa a depender de escolha explícita da pessoa a
+  cada lançamento.
+- Passa a existir a capacidade de exportação e importação de lançamentos em CSV.
 
 ## Capabilities
 
@@ -30,8 +49,12 @@ As outras três são lacunas de contrato: pessoas e categorias não podem ser ed
 
 ## Impact
 
-- **Comportamento observável:** previsão deixa de exibir zero com parcelamento ativo; painel deixa de acusar falta indevida a partir do segundo mês; renomear pessoa deixa de órfanar lançamentos.
-- **Contrato da API:** duas rotas novas de edição (pessoa e categoria), uma rota nova de consulta de receita, duas rotas novas de CSV. Nenhuma rota existente muda de assinatura.
-- **Dados:** nenhuma alteração de esquema — todos os campos necessários já existem. A propagação de nome altera registros existentes dentro da mesma transação.
-- **Interface:** aba de ajustes ganha receita do mês e edição de pessoa e categoria; formulário de lançamento ganha a escolha de memorizar a regra.
-- **Testes:** cada critério de aceite desta proposta vira teste automatizado; a suíte roda no gate de pre-commit já existente (ADR 0002).
+- **Contrato:** `openspec/specs/` passa a cobrir os 11 requisitos funcionais acordados — 9
+  capacidades, 29 requirements, 69 cenários, todos aprovados em `openspec validate --strict`.
+  A rastreabilidade RF → capacidade está em `docs/requisitos-funcionais.md`.
+- **Implementação:** nenhuma. Este change não entrega código; ele fecha o contrato contra o
+  qual o código será construído. O plano de construção está em `tasks.md`.
+- **Dados:** o contrato não exige alteração de esquema — os campos necessários já estão
+  previstos no modelo do protótipo e podem ser reaproveitados.
+- **Testes:** cada cenário do contrato deve virar teste automatizado; a suíte roda no gate de
+  pre-commit já existente (ADR 0002).
