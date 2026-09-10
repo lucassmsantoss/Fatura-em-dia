@@ -84,7 +84,7 @@ class TestPrevisaoCalculadaAPartirDosLancamentos:
             assert meses[mes_em(n)]["total_previsto"] == 300.0
 
     def test_borda_parcela_do_mes_corrente_nao_e_compromisso(self, client, conta_sem_ciclo):
-        """Scenario: Caso de borda — parcela do mês corrente não aparece na previsão."""
+        """Scenario: Caso de borda — parcela do mês corrente não é compromisso."""
         criado = lancar(client, conta_sem_ciclo, valor=1200.0, parcelas=4)
 
         primeira = criado.json()[0]
@@ -106,7 +106,7 @@ class TestPrevisaoCalculadaAPartirDosLancamentos:
         assert mes["total_compromissos"] == 0.0
 
     def test_borda_mes_futuro_sem_nada_lancado(self, client, conta_sem_ciclo):
-        """Scenario: Caso de borda — mês futuro sem nenhum lançamento."""
+        """Scenario: Caso de borda — mês futuro sem nada lançado."""
         resultado = previsao(client, conta_sem_ciclo, meses=3).json()
 
         assert [p["total_previsto"] for p in resultado] == [0.0, 0.0, 0.0]
@@ -115,7 +115,7 @@ class TestPrevisaoCalculadaAPartirDosLancamentos:
     def test_borda_horizonte_fora_do_intervalo_e_ajustado(
         self, client, conta_sem_ciclo, pedido, esperado
     ):
-        """Scenario: Caso de borda — horizonte fora do intervalo é ajustado, não falha."""
+        """Scenario: Caso de borda — horizonte de meses fora do intervalo é ajustado, não falha."""
         resposta = previsao(client, conta_sem_ciclo, meses=pedido)
 
         assert resposta.status_code == 200

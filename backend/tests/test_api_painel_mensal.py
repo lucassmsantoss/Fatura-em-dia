@@ -225,7 +225,7 @@ class TestListagemDasReceitasRegistradas:
         assert receitas[2]["renda_principal"] == 5200.0
 
     def test_borda_conta_sem_nenhuma_receita_registrada(self, client, conta_mes_simples):
-        """Scenario: Caso de borda — conta sem nenhuma receita devolve lista vazia, sem erro."""
+        """Scenario: Caso de borda — conta sem nenhuma receita registrada."""
         resposta = client.get("/receitas", headers=conta_mes_simples)
 
         assert resposta.status_code == 200
