@@ -12,29 +12,29 @@
 - [x] 2.3 Testes de `cadastros-de-apoio`: criação, remoção, renomeação com propagação, e recurso de outra conta **(Maria)**
 - [x] 2.4 Implementar edição de pessoa com propagação para lançamentos, regras e pagamentos, em transação única **(Maria)**
 - [x] 2.5 Implementar edição de categoria com propagação para lançamentos e regras **(Maria)**
-- [ ] 2.6 Expor criação e edição de forma de pagamento **depois** da configuração inicial, não apenas durante ela — API já atende (`POST`/`PUT /cartoes`, coberta por teste); falta a interface **(Lucas)**
-- [ ] 2.7 Expor pessoas, categorias e formas de pagamento na aba de ajustes com criar, editar e remover **(Lucas)**
+- [x] 2.6 Expor criação e edição de forma de pagamento **depois** da configuração inicial, não apenas durante ela — API já atende (`POST`/`PUT /cartoes`, coberta por teste); falta a interface **(Lucas)**
+- [x] 2.7 Expor pessoas, categorias e formas de pagamento na aba de ajustes com criar, editar e remover **(Lucas)**
 
 ## 3. Lançamento de despesa e ciclo de fatura
 
 - [x] 3.1 Testes de `lancamento-de-despesas`: registro, parcelamento, ciclo de fechamento, rateio, correção de dono, e os casos de borda de valor e descrição **(Maria)**
 - [x] 3.2 Implementar as funções puras de ciclo de fatura, rateio e geração de parcelas no módulo de domínio — já existiam no protótipo e conformam ao contrato; verificado por teste **(Maria)**
 - [x] 3.3 Implementar o registro de despesa sobre essas funções, uma parcela por lançamento — já conformava; nenhuma mudança de código foi necessária **(a definir)**
-- [ ] 3.4 Implementar o formulário de lançamento **(Lucas)**
+- [x] 3.4 Implementar o formulário de lançamento **(Lucas)**
 
 ## 4. Auto-categorização
 
 - [x] 4.1 Teste da sugestão por palavra-chave, incluindo tolerância a acento e caixa e os casos de borda **(Maria)**
 - [x] 4.2 Teste que verifica que **nenhuma regra é criada sem pedido explícito** **(Maria)**
 - [x] 4.3 Implementar o motor de regras como função pura e a criação condicional da regra — backend já conformava (`salvar_regra` default `False`, honrado pelo router); o desvio está só no front, que envia `true` fixo **(Maria)**
-- [ ] 4.4 Adicionar a opção de memorizar categoria e pessoas no formulário, **desmarcada por padrão** **(Lucas)**
+- [x] 4.4 Adicionar a opção de memorizar categoria e pessoas no formulário, **desmarcada por padrão** **(Lucas)**
 
 ## 5. Painel mensal e receita
 
 - [x] 5.1 Testes de `painel-mensal`: consolidação, ranking por categoria, gasto sem dono, e receita — incluindo mês sem receita devolvendo zero **(Maria)**
 - [x] 5.2 Implementar o painel do mês — já conformava (consolidação, ranking próprio, sem dono); nenhuma mudança de código **(a definir)**
 - [x] 5.3 Implementar consulta e alteração de receita por mês **(a definir)**
-- [ ] 5.4 Adicionar a seção de receita do mês na aba de ajustes, com seleção de mês **(Lucas)**
+- [x] 5.4 Adicionar a seção de receita do mês na aba de ajustes, com seleção de mês **(Lucas)**
 
 ## 6. Previsão financeira
 
@@ -48,16 +48,16 @@
 
 - [x] 7.1 Testes de `cobranca-entre-pessoas`: extrato do mês, saldo acumulado, registro de pagamento, lista de devedores **(Maria)**
 - [x] 7.2 Implementar extrato, acumulado e registro de pagamento — já conformava; nenhuma mudança de código **(a definir)**
-- [ ] 7.3 Implementar a aba de cobrança **(Lucas)**
+- [x] 7.3 Implementar a aba de cobrança **(Lucas)**
 
 ## 8. Exportação e importação em CSV (condicional ao tempo restante)
 
 - [x] 8.1 Testes do formato: ciclo completo, conta vazia, linha malformada e cabeçalho não reconhecido **(a definir)**
 - [x] 8.2 Implementar serialização e leitura de CSV em módulo de domínio próprio, sem acesso a banco **(a definir)**
-- [ ] 8.3 Expor exportação e importação na interface — API já exposta (`GET /lancamentos/exportar`, `POST /lancamentos/importar`), coberta por teste **(a definir)**
+- [x] 8.3 Expor exportação e importação na interface — API já exposta (`GET /lancamentos/exportar`, `POST /lancamentos/importar`), coberta por teste **(a definir)**
 
 ## 9. Fechamento
 
 - [x] 9.1 Rodar `openspec validate --all --strict` e confirmar que todo cenário do contrato tem teste correspondente **(Maria)**
-- [ ] 9.2 Atualizar o README com o estado real dos requisitos, sem promessas em tempo futuro **(Maria)**
-- [ ] 9.3 Arquivar este change com `openspec archive conformidade-rf` **(Maria)**
+- [x] 9.2 Atualizar o README com o estado real dos requisitos, sem promessas em tempo futuro **(Maria)**
+- [x] 9.3 Arquivar este change com `openspec archive conformidade-rf` **(Maria)**

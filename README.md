@@ -66,11 +66,12 @@ do repositório reflete essa ordem:
 | Especificação (`openspec/specs/`) | **fechada** — 11 RFs, 29 requisitos, 69 cenários, validados |
 | Decisões de arquitetura (`docs/adr/`) | **fechadas** — 3 ADRs + diagramas C4 |
 | Harness e guardrail | **ativos** — hook de pre-commit + evidência de bloqueio e de observabilidade |
-| Implementação (`backend/`, `frontend/`) | **em andamento** — protótipo provisório sendo reconstruído contra o contrato |
+| Backend (`backend/`) | **conforme ao contrato** — 152 testes, 72/72 cenários cobertos |
+| Frontend (`frontend/`) | **reescrito em Vue 3 + Vite**, cobrindo os 11 RFs |
 
-O protótipo em `backend/` e `frontend/` é anterior às especificações e **não é referência de
-comportamento**: ele serve como estudo de viabilidade e fonte de peças reaproveitáveis. O que
-vale como contrato é `openspec/specs/`.
+O que vale como contrato é `openspec/specs/`, não o código. O protótipo anterior às
+especificações foi trazido à conformidade capacidade por capacidade, com teste derivado do
+cenário escrito antes da implementação; a interface foi reescrita em seguida (ADR 0004).
 
 ## Arquitetura
 
@@ -91,7 +92,7 @@ Os diagramas de contexto e de contêineres (C4 em Mermaid) estão em [`docs/arqu
 ## Stack tecnológica
 
 - **Backend**: Python 3.11+, FastAPI, SQLAlchemy 2.0, autenticação JWT (python-jose) e hash de senha com bcrypt (passlib).
-- **Frontend**: HTML/CSS/JavaScript puro (SPA sem build step), consumindo a API via `fetch()`.
+- **Frontend**: SPA em **Vue 3** com **Vite**, consumindo a API via `fetch()`. A troca do JavaScript puro sem build para Vue/Vite está justificada na [ADR 0004](docs/adr/0004-frontend-vite-vue.md).
 - **Banco de dados**: SQLite.
 - **Testes**: pytest — 20 testes unitários cobrindo o módulo de domínio do protótipo (`app/domain/fatura.py`: ciclo de fatura, rateio, parcelamento e auto-categorização), escritos antes dele (TDD). A suíte de API, derivada dos cenários do contrato, ainda não existe — ver [Testes](#testes).
 - **Ferramentas de IA / harness**: Claude Code, com processo de Spec-Driven Development documentado em `docs/`.
@@ -131,7 +132,8 @@ Os diagramas de contexto e de contêineres (C4 em Mermaid) estão em [`docs/arqu
 │   ├── adr/
 │   │   ├── 0001-arquitetura-rest-api.md
 │   │   ├── 0002-guardrail-pre-commit.md
-│   │   └── 0003-adocao-do-openspec.md
+│   │   ├── 0003-adocao-do-openspec.md
+│   │   └── 0004-frontend-vite-vue.md
 │   └── evidencias/
 │       ├── guardrail-bloqueio-commit.png  # bloqueio real do guardrail
 │       └── sessao-agente-specs.md         # transcript sanitizado da sessão do agente
@@ -153,12 +155,24 @@ Os diagramas de contexto e de contêineres (C4 em Mermaid) estão em [`docs/arqu
 │   │   └── test_fatura_domain.py  # cobertura unitária do módulo de domínio (TDD)
 │   ├── requirements.txt
 │   └── pytest.ini
-└── frontend/                         # protótipo provisório — ver Estado atual
-    ├── index.html
-    ├── css/estilo.css
-    └── js/
-        ├── api.js   # cliente HTTP da API (fetch + JWT em localStorage)
-        └── app.js   # SPA: login/registro, onboarding, lançar, painel, extrato, ajustes
+└── frontend/                         # SPA em Vue 3 + Vite (ADR 0004)
+    ├── index.html                    # entrada do Vite
+    ├── package.json
+    ├── vite.config.js                # proxy dos prefixos da API em desenvolvimento
+    └── src/
+        ├── main.js
+        ├── App.vue                   # casca: telas, navegação, avisos
+        ├── api.js                    # cliente HTTP (fetch + JWT em localStorage)
+        ├── estado.js                 # estado compartilhado (reactive, sem store)
+        ├── formato.js                # moeda e aritmética de meses
+        ├── estilo.css
+        └── views/
+            ├── Autenticacao.vue      # RF01
+            ├── Onboarding.vue        # RF02
+            ├── Lancar.vue            # RF06, RF07
+            ├── Painel.vue            # RF08, RF09
+            ├── Cobrar.vue            # RF10
+            └── Ajustes.vue           # RF03, RF04, RF05, receita e CSV (RF11)
 ```
 
 ## Como rodar o projeto
@@ -177,7 +191,25 @@ A API sobe em `http://localhost:8000` — documentação interativa (Swagger) em
 
 ### Frontend
 
-Com o backend rodando em `http://localhost:8000`, basta abrir `frontend/index.html` diretamente no navegador (ou servir a pasta com qualquer servidor estático, ex. `python -m http.server` dentro de `frontend/`). Não há build step — é HTML/CSS/JS puro.
+Há dois modos, e os dois funcionam:
+
+**Desenvolvimento** — servidor do Vite com recarga instantânea, fazendo proxy da API para o backend:
+
+```bash
+cd frontend
+npm install
+npm run dev          # http://localhost:5173
+```
+
+**Demonstração** — build estático servido pelo próprio backend, em uma única origem e um único processo:
+
+```bash
+cd frontend && npm run build     # gera frontend/dist/
+cd ../backend && uvicorn app.main:app
+# aplicação e API em http://localhost:8000
+```
+
+O backend serve `frontend/dist/` quando ele existe, montado **depois** dos routers — assim todo caminho da API é atendido pela API e só o resto cai no SPA. Detalhes na [ADR 0004](docs/adr/0004-frontend-vite-vue.md).
 
 ### Rodando os testes
 
@@ -193,7 +225,7 @@ Este projeto foi desenvolvido com apoio de agente de IA, seguindo Spec-Driven De
 1. **Especificação** — prompt inicial, requisitos e critérios de aceite (Given/When/Then, incluindo casos de borda) em [`docs/especificacao-inicial.md`](docs/especificacao-inicial.md) e [`docs/requisitos-funcionais.md`](docs/requisitos-funcionais.md).
 2. **Harness e guardrails** — nível de autonomia adotado (e por que ele fez sentido aqui), guardrail de `pre-commit` e evidência de bloqueio real em [`docs/especificacao-inicial.md`](docs/especificacao-inicial.md#harness-e-controle-de-agente-de-ia) e [`docs/adr/0002-guardrail-pre-commit.md`](docs/adr/0002-guardrail-pre-commit.md).
 3. **Observabilidade** — log da sessão do agente transcrito e sanitizado em [`docs/evidencias/sessao-agente-specs.md`](docs/evidencias/sessao-agente-specs.md), incluindo a revisão de diff que precedeu o commit.
-4. **Decisões de arquitetura** — registradas como ADRs em [`docs/adr/`](docs/adr/).
+4. **Decisões de arquitetura** — registradas como ADRs em [`docs/adr/`](docs/adr/): API REST separada (0001), guardrail de pre-commit (0002), adoção do OpenSpec (0003) e frontend em Vue/Vite (0004).
 
 ## Testes
 
