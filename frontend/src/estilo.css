@@ -9,6 +9,14 @@
   --r:14px;
   --f-disp:ui-sans-serif,system-ui,sans-serif;
   --f-body:ui-sans-serif,system-ui,sans-serif;
+
+  /* Visualização de dados — validados em scripts/validate_palette.js.
+     O teal da marca (#0E6F63) reprova no piso de croma quando vira marca de
+     dado: lê como cinza. Estes são a versão dele aprovada nos cinco checks. */
+  --viz-1:#0E8C7C;       /* magnitude / compromisso já contratado */
+  --viz-2:#B86A08;       /* estimativa / conta fixa recorrente */
+  --viz-grid:#E4EAE8;    /* grade: um passo fora da superfície, 1px, sólida */
+  --viz-track:#EDF2F0;   /* trilha de medidor */
 }
 html,body{margin:0;padding:0}
 [hidden]{display:none!important}
@@ -70,3 +78,87 @@ nav button[aria-current="true"]{color:var(--accent);background:var(--accent-soft
 .centro{max-width:400px;margin:60px auto;padding:0 16px}
 .erro{color:var(--alert);font-size:13.5px;margin-top:8px}
 .link{color:var(--accent);cursor:pointer;text-decoration:underline;background:none;border:0;padding:0;font:inherit}
+
+
+/* ============ Cabeçalho e menu da conta ============ */
+.cabecalho{position:sticky;top:0;z-index:20;background:var(--paper);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px 2px;margin:-16px -16px 10px;padding-left:16px;padding-right:16px;
+  border-bottom:1px solid transparent;transition:border-color .15s}
+.cabecalho.deslocado{border-bottom-color:var(--line)}
+.conta{position:relative}
+.conta>button{display:flex;align-items:center;gap:8px;background:transparent;border:1px solid var(--line);
+  border-radius:999px;padding:4px 10px 4px 4px;cursor:pointer}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);
+  display:grid;place-items:center;font-size:12px;font-weight:700;letter-spacing:.02em}
+.conta .nome{font-size:13.5px;font-weight:500;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.menu{position:absolute;right:0;top:calc(100% + 6px);min-width:210px;background:var(--surface);
+  border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(19,26,25,.12);padding:6px;z-index:30}
+.menu .cab{padding:8px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.menu .cab .e{font-size:12.5px;color:var(--ink3);overflow:hidden;text-overflow:ellipsis}
+.menu button{width:100%;text-align:left;background:transparent;border:0;border-radius:8px;
+  padding:9px 10px;cursor:pointer;font-size:14px;color:var(--ink)}
+.menu button:hover{background:var(--surface2)}
+.menu button.perigo{color:var(--alert)}
+
+/* ============ Números de destaque ============ */
+.hero{padding:2px 0 6px}
+.hero .rot{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.hero .num{font-size:40px;line-height:1.05;font-weight:700;letter-spacing:-.03em;margin-top:6px;
+  font-variant-numeric:tabular-nums}
+.hero .ctx{font-size:13px;color:var(--ink2);margin-top:7px}
+
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.kpi{background:var(--paper);border-radius:10px;padding:10px}
+.kpi .r{font-size:11px;color:var(--ink3);font-weight:500}
+.kpi .v{font-size:15px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}
+
+/* ============ Medidor (razão contra um limite) ============ */
+.medidor{margin-top:12px}
+.medidor .trilha{height:8px;border-radius:999px;background:var(--viz-track);overflow:hidden;display:flex}
+.medidor .parte{height:100%}
+.medidor .leg{display:flex;justify-content:space-between;font-size:12px;color:var(--ink3);margin-top:6px}
+
+/* ============ Gráficos ============ */
+.grafico{position:relative;margin-top:4px}
+.grafico svg{display:block;width:100%;overflow:visible}
+.grafico .barra{cursor:pointer;transition:opacity .12s}
+.grafico:hover .barra{opacity:.55}
+.grafico .barra:hover,.grafico .barra.ativa{opacity:1}
+.grafico text{font-family:var(--f-body);font-variant-numeric:tabular-nums}
+.dica{position:absolute;pointer-events:none;background:var(--ink);color:#fff;border-radius:8px;
+  padding:7px 10px;font-size:12.5px;line-height:1.4;white-space:nowrap;transform:translate(-50%,-115%);
+  box-shadow:0 4px 14px rgba(19,26,25,.2);z-index:10}
+.dica b{font-variant-numeric:tabular-nums}
+.dica .l{display:flex;align-items:center;gap:6px}
+.dica i{width:8px;height:8px;border-radius:2px;display:inline-block}
+
+.legenda{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12.5px;color:var(--ink2)}
+.legenda span{display:inline-flex;align-items:center;gap:6px}
+.legenda i{width:10px;height:10px;border-radius:3px}
+
+.cabecalho-bloco{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px}
+.cabecalho-bloco h2{margin:0}
+.alternar{background:transparent;border:0;color:var(--ink3);font-size:11.5px;cursor:pointer;
+  text-decoration:underline;padding:0}
+.alternar:hover{color:var(--accent)}
+
+table.dados{width:100%;border-collapse:collapse;font-size:13.5px}
+table.dados th,table.dados td{text-align:left;padding:7px 0;border-bottom:1px solid var(--line)}
+table.dados th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);font-weight:600}
+table.dados td:last-child,table.dados th:last-child{text-align:right;font-variant-numeric:tabular-nums}
+
+/* ============ Cobrança ============ */
+.pessoas-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:14px}
+.pessoa-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px;
+  cursor:pointer;text-align:left;display:flex;gap:9px;align-items:center;transition:border-color .12s,background .12s}
+.pessoa-card:hover{border-color:var(--accent)}
+.pessoa-card[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.pessoa-card .info{min-width:0;flex:1;display:flex;flex-direction:column;gap:1px}
+.pessoa-card .n{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pessoa-card .v{font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums}
+
+@media (max-width:420px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .hero .num{font-size:34px}
+}

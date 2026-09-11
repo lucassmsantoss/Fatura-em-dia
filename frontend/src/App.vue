@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { API } from "./api.js";
 import { estado, carregarConfig, sair } from "./estado.js";
 import Autenticacao from "./views/Autenticacao.vue";
@@ -21,7 +21,34 @@ const componenteDaAba = () => ABAS.find(([id]) => id === estado.aba)?.[2] ?? Lan
 function trocarAba(id) {
   estado.aba = id;
   estado.erro = "";
+  menuAberto.value = false;
 }
+
+// ---- menu da conta ----
+// O "sair" era um link solto ao lado da marca, fácil de acertar sem querer e
+// sem nenhum contexto de quem está logado. Vira um menu: avatar com iniciais,
+// nome, email, e a saída atrás de um clique a mais.
+const menuAberto = ref(false);
+const deslocado = ref(false);
+
+const iniciais = (nome = "") =>
+  nome.split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
+
+function fecharForaDoMenu(evento) {
+  if (!evento.target.closest(".conta")) menuAberto.value = false;
+}
+function aoRolar() {
+  deslocado.value = window.scrollY > 4;
+}
+
+onMounted(() => {
+  document.addEventListener("click", fecharForaDoMenu);
+  window.addEventListener("scroll", aoRolar, { passive: true });
+});
+onUnmounted(() => {
+  document.removeEventListener("click", fecharForaDoMenu);
+  window.removeEventListener("scroll", aoRolar);
+});
 
 onMounted(async () => {
   if (!API.token()) return;
@@ -45,10 +72,25 @@ onMounted(async () => {
   <Onboarding v-else-if="estado.tela === 'onboarding'" />
 
   <template v-else>
-    <div class="topo">
+    <header class="cabecalho" :class="{ deslocado }">
       <div class="marca">Fatura<span> em Dia</span></div>
-      <button class="link" @click="sair">sair</button>
-    </div>
+
+      <div class="conta">
+        <button :aria-expanded="menuAberto" aria-haspopup="menu" @click="menuAberto = !menuAberto">
+          <span class="avatar">{{ iniciais(estado.usuario?.nome) }}</span>
+          <span class="nome">{{ estado.usuario?.nome }}</span>
+        </button>
+
+        <div v-if="menuAberto" class="menu" role="menu">
+          <div class="cab">
+            <div style="font-weight:600">{{ estado.usuario?.nome }}</div>
+            <div class="e">{{ estado.usuario?.email }}</div>
+          </div>
+          <button role="menuitem" @click="trocarAba('ajustes')">Ajustes da conta</button>
+          <button role="menuitem" class="perigo" @click="sair">Sair</button>
+        </div>
+      </div>
+    </header>
 
     <div v-if="estado.flash" class="aviso verde">{{ estado.flash }}</div>
     <div v-if="estado.erro" class="aviso vermelho">{{ estado.erro }}</div>
