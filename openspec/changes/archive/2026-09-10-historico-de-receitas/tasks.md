@@ -6,4 +6,4 @@
 
 ## 2. Fechamento
 
-- [ ] 2.1 Promover o delta para `openspec/specs/` arquivando o change **(Maria)**
+- [x] 2.1 Promover o delta para `openspec/specs/` arquivando o change **(Maria)**

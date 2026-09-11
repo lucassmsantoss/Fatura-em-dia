@@ -60,4 +60,4 @@
 
 - [x] 9.1 Rodar `openspec validate --all --strict` e confirmar que todo cenário do contrato tem teste correspondente **(Maria)**
 - [x] 9.2 Atualizar o README com o estado real dos requisitos, sem promessas em tempo futuro **(Maria)**
-- [ ] 9.3 Arquivar este change com `openspec archive conformidade-rf` **(Maria)**
+- [x] 9.3 Arquivar este change com `openspec archive conformidade-rf` **(Maria)**
